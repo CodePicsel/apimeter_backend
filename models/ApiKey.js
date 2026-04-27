@@ -37,6 +37,12 @@ const apiKeySchema = new mongoose.Schema(
       default: 10000,
       min: 1,
     },
+    targetBaseUrl: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 500,
+    },
     totalRequests: {
       type: Number,
       default: 0,
