@@ -1,0 +1,482 @@
+{
+  "info": {
+    "_postman_id": "8ee8d137-4e20-4abd-a044-0988f1ef1f91",
+    "name": "Apimeter API",
+    "description": "Postman collection for testing the Apimeter backend locally. Import this collection and the Apimeter Local environment, then run requests from top to bottom.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('register succeeded', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.environment.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo User\",\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('login succeeded', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.environment.set('token', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "API Keys",
+      "item": [
+        {
+          "name": "Create API Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('api key created', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.data && json.data.key) {",
+                  "  pm.environment.set('apiKey', json.data.key);",
+                  "}",
+                  "if (json.data && json.data.apiKey && json.data.apiKey._id) {",
+                  "  pm.environment.set('apiKeyId', json.data.apiKey._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PokeAPI Development Key\",\n  \"targetBaseUrl\": \"https://pokeapi.co/api/v2\",\n  \"monthlyLimit\": 10000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "keys"]
+            }
+          }
+        },
+        {
+          "name": "List API Keys",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "keys"]
+            }
+          }
+        },
+        {
+          "name": "Update API Key",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PokeAPI Development Key Updated\",\n  \"targetBaseUrl\": \"https://pokeapi.co/api/v2\",\n  \"monthlyLimit\": 25000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/keys/{{apiKeyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "keys", "{{apiKeyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Revoke API Key",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/keys/{{apiKeyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "keys", "{{apiKeyId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proxy Metered API",
+      "item": [
+        {
+          "name": "Metered Ping",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/metered/ping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "metered", "ping"]
+            }
+          }
+        },
+        {
+          "name": "Proxy PokeAPI Pokemon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('proxy request accepted', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxy/pokemon/pikachu",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "proxy", "pokemon", "pikachu"]
+            }
+          }
+        },
+        {
+          "name": "Proxy PokeAPI Ability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/proxy/ability/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "proxy", "ability", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usage",
+      "item": [
+        {
+          "name": "Usage Summary",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/summary?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "summary"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Usage Summary By API Key",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/summary?apiKeyId={{apiKeyId}}&days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "summary"],
+              "query": [
+                {
+                  "key": "apiKeyId",
+                  "value": "{{apiKeyId}}"
+                },
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Logs",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/logs?page=1&limit=25&days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "25"
+                },
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Request Logs By API Key",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/logs?apiKeyId={{apiKeyId}}&page=1&limit=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "logs"],
+              "query": [
+                {
+                  "key": "apiKeyId",
+                  "value": "{{apiKeyId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "25"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
