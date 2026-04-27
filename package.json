@@ -1,4 +1,13 @@
 {
+  "name": "apimeter-backend",
+  "version": "1.0.0",
+  "description": "Backend API metering service with auth, API keys, request logging, and usage analytics.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "check": "node --check app.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

@@ -1,68 +1,138 @@
-Meaning of each folder in this app
+# Apimeter Backend
 
-config/
-Stores setup code like MongoDB connection, environment variables, Redis connection, etc.
+Express + MongoDB backend for an API metering application. It works as a metered API gateway: users register an upstream API base URL, receive an API key, and every request made through Apimeter is forwarded to that upstream API while being tracked.
 
-models/
-Stores MongoDB schemas.
-For example:
+## Tech Stack
 
-User.js
-ApiKey.js
-RequestLog.js
-UsageStats.js
+- Node.js + Express
+- MongoDB + Mongoose
+- JWT authentication
+- Hashed API keys
+- Metered API proxy
+- Zod request validation
 
-These models save who made the request, when, and how many times.
+## Setup
 
-routes/
-Defines API endpoints.
-For example:
+1. Install dependencies:
 
-POST /auth/register
-POST /auth/login
-POST /apikey/create
-GET /usage
-GET /logs
+```bash
+npm install
+```
 
-controllers/
-Contains the main request-handling logic.
-Example: when /usage is called, controller decides what data to return.
+2. Create `.env` from `.env.example` and fill the values:
 
-middleware/
-Contains checks before the controller runs.
-Very useful in metering apps for:
+```bash
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/apimeter
+JWT_SECRET=replace_with_a_long_random_secret
+JWT_EXPIRES_IN=7d
+CORS_ORIGIN=http://localhost:5173
+API_KEY_PREFIX=apm
+PROXY_TIMEOUT_MS=30000
+```
 
-authentication
-API key validation
-request counting
-rate limiting
-logging request info
+3. Start the server:
 
-services/
-Contains the actual business logic.
+```bash
+npm run dev
+```
+
+Use `npm.cmd run dev` on Windows if PowerShell blocks the npm script shim.
+
+## Main Endpoints
+
+### Auth
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
+### API Keys
+
+Requires `Authorization: Bearer <jwt>`.
+
+- `GET /api/keys`
+- `POST /api/keys`
+- `PATCH /api/keys/:id`
+- `DELETE /api/keys/:id`
+
+`POST /api/keys` returns the raw key once. Store it immediately.
+
+Create keys with a `targetBaseUrl`, for example:
+
+```json
+{
+  "name": "PokeAPI Key",
+  "targetBaseUrl": "https://pokeapi.co/api/v2",
+  "monthlyLimit": 10000
+}
+```
+
+### Metered Proxy API
+
+Requires `x-api-key: <api_key>`.
+
+- `ANY /api/proxy/*`
+- `GET /api/metered/ping`
+
+The proxy validates the API key, checks the monthly limit, forwards the request to the key's `targetBaseUrl`, records the request, and returns the upstream response.
+
 Example:
 
-increment request count
-calculate daily/monthly usage
-check plan limits
-generate usage reports
+```text
+targetBaseUrl: https://pokeapi.co/api/v2
+client calls:  GET /api/proxy/pokemon/pikachu
+upstream call: GET https://pokeapi.co/api/v2/pokemon/pikachu
+```
 
-utils/
-Small helper functions.
-Example:
+Tracked fields include:
 
-date formatter
-error helper
-response formatter
-token generator
+- API key and user
+- HTTP method and Apimeter route
+- upstream base URL, full URL, and path
+- status code and upstream status code
+- response time and upstream response time
+- request bytes, response bytes, and total transfer bytes
+- IP address, user agent, content type, and error message
 
-jobs/
-Useful if you want background tasks.
-Example:
+### Usage
 
-reset daily counters
-send usage reports
-clean old logs
+Requires `Authorization: Bearer <jwt>`.
 
-app.js
-Main file where Express app is created, middleware is loaded, and routes are connected.
+- `GET /api/usage/summary?days=30`
+- `GET /api/usage/logs?page=1&limit=25&days=30`
+- `GET /api/usage/logs?apiKeyId=<id>`
+
+## Example Flow
+
+Register:
+
+```bash
+curl -X POST http://localhost:5000/api/auth/register ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"Demo User\",\"email\":\"demo@example.com\",\"password\":\"password123\"}"
+```
+
+Create an API key:
+
+```bash
+curl -X POST http://localhost:5000/api/keys ^
+  -H "Authorization: Bearer <jwt>" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"name\":\"PokeAPI\",\"targetBaseUrl\":\"https://pokeapi.co/api/v2\",\"monthlyLimit\":10000}"
+```
+
+Call a metered endpoint:
+
+```bash
+curl http://localhost:5000/api/proxy/pokemon/pikachu -H "x-api-key: <api_key>"
+```
+
+## Project Structure
+
+- `config/` MongoDB connection
+- `models/` Mongoose schemas
+- `controllers/` Request handling logic
+- `routes/` Endpoint definitions
+- `middleware/` Auth, API key validation, metering, and errors
+- `app.js` Express app and server bootstrap
