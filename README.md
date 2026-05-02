@@ -128,6 +128,74 @@ Call a metered endpoint:
 curl http://localhost:5000/api/proxy/pokemon/pikachu -H "x-api-key: <api_key>"
 ```
 
+## Load Testing With k6
+
+This repo includes `api-proxy-test.js`, a k6 script that repeatedly calls a few Pokemon proxy routes and checks that each response returns HTTP `200`.
+
+Install k6 on Windows with PowerShell:
+
+```powershell
+winget install --id Grafana.k6 -e
+```
+
+Verify the installation:
+
+```powershell
+& "C:\Program Files\k6\k6.exe" version
+```
+
+Example output:
+
+```text
+k6.exe v2.0.0-rc1 (commit/fb943a6a80, go1.26.2, windows/amd64)
+```
+
+Run the load test against the deployed backend:
+
+```powershell
+$env:API_KEY = "<your_api_key>"
+& "C:\Program Files\k6\k6.exe" run .\api-proxy-test.js
+```
+
+To run the same test against your local backend, start the server first with `npm run dev`, then pass `BASE_URL`:
+
+```powershell
+$env:BASE_URL = "http://localhost:5000"
+$env:API_KEY = "<your_api_key>"
+& "C:\Program Files\k6\k6.exe" run .\api-proxy-test.js
+```
+
+Expected output looks like this when all checks pass:
+
+```text
+/\      Grafana   /‾‾/
+/\  /  \     |\  __   /  /
+/  \/    \    | |/ /  /   ‾‾\
+/          \   |   (  |  (‾)  |
+/ __________ \  |_|\_\  \_____/
+
+execution: local
+script: .\api-proxy-test.js
+output: -
+
+scenarios: (100.00%) 1 scenario, 10 max VUs, 1m0s max duration (incl. graceful stop):
+         * default: 10 looping VUs for 30s (gracefulStop: 30s)
+
+TOTAL RESULTS
+
+checks_total.......: 11
+checks_succeeded...: 100.00% 11 out of 11
+checks_failed......: 0.00% 0 out of 11
+
+✓ status was 200
+
+http_req_failed....: 0.00% 0 out of 11
+http_reqs..........: 11
+
+running (0m32.8s), 00/10 VUs, 11 complete and 0 interrupted iterations
+default ✓ [======================================] 10 VUs  30s
+```
+
 ## Project Structure
 
 - `config/` MongoDB connection
